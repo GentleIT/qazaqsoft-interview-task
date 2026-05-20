@@ -77,39 +77,70 @@ class QuizEngine {
   /** @param {number} index */
   goTo(index) {
     // TODO: валидировать границы и сменить текущий индекс
-    throw new Error("Not implemented: QuizEngine.goTo");
+    if (index >= 0 && index < this.length) {
+      this.currentIndex = index
+    }
   }
 
   next() {
     // TODO: перейти к следующему вопросу, если возможно
-    throw new Error("Not implemented: QuizEngine.next");
+    if (this.currentIndex < this.length - 1) {
+      this.currentIndex = this.currentIndex + 1;
+    }
   }
 
   prev() {
     // TODO: перейти к предыдущему вопросу, если возможно
-    throw new Error("Not implemented: QuizEngine.prev");
+    if (this.currentIndex > 0) {
+      this.currentIndex = this.currentIndex - 1;
+    }
   }
 
   /** @param {number} optionIndex */
   select(optionIndex) {
     // TODO: сохранить выбор пользователя для текущего вопроса
-    throw new Error("Not implemented: QuizEngine.select");
+    const currentQuestion = this.currentQuestion;
+    if (currentQuestion !== undefined) {
+      this.answers[currentQuestion.id] = optionIndex;
+    }
   }
 
   getSelectedIndex() {
     // TODO: вернуть выбранный индекс для текущего вопроса (или undefined)
-    throw new Error("Not implemented: QuizEngine.getSelectedIndex");
+    const currentQuestion = this.currentQuestion;
+    if (currentQuestion !== undefined) {
+      return this.answers[currentQuestion.id]
+    }
+
+    return undefined
   }
 
   tick() {
     // TODO: декремент таймера; если 0 — завершить тест
-    throw new Error("Not implemented: QuizEngine.tick");
+    if (this.remainingSec > 0) {
+      this.remainingSec = this.remainingSec - 1;
+    }
+
+    // if time is up, but test is not finished yet
+    if (this.remainingSec === 0 & this.isFinished === false) {
+      this.isFinished = true;
+
+      const summary = this.finish();
+      stopTimer(); // thx for keeping it
+      renderResult(summary);
+      persist();
+    }
   }
 
   finish() {
     // TODO: зафиксировать завершение и вернуть сводку результата
     // return { correct: number, total: number, percent: number, passed: boolean }
-    throw new Error("Not implemented: QuizEngine.finish");
+    this.isFinished == true;
+    const correctCount = 0;
+
+    for (const question of this.question) {
+      const userAnswer = this.answers[q.id];
+    }
   }
 
   /** Восстановление/выгрузка состояния для localStorage */
