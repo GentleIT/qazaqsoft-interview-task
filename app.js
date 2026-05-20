@@ -25,18 +25,29 @@ class Question {
 class StorageService {
   static saveState(state) {
     // TODO: сериализовать state и сохранить в localStorage
-    // Пример: localStorage.setItem(STORAGE_KEYS.STATE, JSON.stringify(state));
-    throw new Error("Not implemented: StorageService.saveState");
+    localStorage.setItem(STORAGE_KEYS.State, JSON.stringify(state))
   }
 
-  static loadState() {
+  static loadState(state) {
     // TODO: прочитать и распарсить состояние, вернуть объект или null
-    throw new Error("Not implemented: StorageService.loadState");
+    try {
+      const rawString = localStorage.getItem(STORAGE_KEYS.STATE);
+      
+      if (rawString === null) {
+        return null;
+      }
+      
+      const parsedState = JSON.parse(rawString);
+      return parsedState;
+    } catch (error) {
+      console.error("Ошибка чтения состояния, начинаем заново:", error);
+      return null;
+    }
   }
 
   static clear() {
     // TODO: очистить сохранённое состояние
-    throw new Error("Not implemented: StorageService.clear");
+    localStorage.removeItem(STORAGE_KEYS.STATE);
   }
 }
 
