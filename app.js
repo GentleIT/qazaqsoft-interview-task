@@ -160,11 +160,15 @@ class QuizEngine {
       passed = true;
     }
 
+    const totalTimeLimit = this.timeLimitSec || 300;
+    const timeSpentSec = totalTimeLimit - this.remainingSec;
+
     return {
       correct: correctCount,
       total: totalCount,
       percent: percent,
       passed: passed,
+      timeSpent: timeSpentSec,
     };
   }
 
@@ -412,9 +416,12 @@ function renderResult(summary) {
   
   els.result.classList.remove("hidden");
 
+  const minutes = Math.floor(summary.timeSpent / 60).toString().padStart(2, "0");
+  const seconds = (summary.timeSpent % 60).toString().padStart(2, "0");
+
   const pct = Math.round(summary.percent * 100);
   const status = summary.passed ? "Пройден" : "Не пройден";
-  els.resultSummary.textContent = `${summary.correct} / ${summary.total} (${pct}%) — ${status}`;
+  els.resultSummary.textContent = `${summary.correct} / ${summary.total} (${pct}%) — ${status} | Время — ${minutes}:${seconds}`;
 }
 
 // ========== Persist ==========
