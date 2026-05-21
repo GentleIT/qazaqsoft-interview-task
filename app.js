@@ -135,24 +135,61 @@ class QuizEngine {
   finish() {
     // TODO: зафиксировать завершение и вернуть сводку результата
     // return { correct: number, total: number, percent: number, passed: boolean }
-    this.isFinished == true;
-    const correctCount = 0;
+    this.isFinished = true;
+    let correctCount = 0;
 
-    for (const question of this.question) {
-      const userAnswer = this.answers[q.id];
+    // Классический цикл вместо методов массива
+    for (const question of this.questions) {
+      const userAnswer = this.answers[question.id];
+      
+      if (userAnswer === question.correctIndex) {
+        correctCount = correctCount + 1;
+      }
     }
+
+    const totalCount = this.length;
+    let percent = 0;
+    
+    // Защита от деления на ноль, если массив вопросов пуст
+    if (totalCount > 0) {
+      percent = correctCount / totalCount;
+    }
+
+    let passed = false;
+    if (percent >= this.passThreshold) {
+      passed = true;
+    }
+
+    return {
+      correct: correctCount,
+      total: totalCount,
+      percent: percent,
+      passed: passed,
+    };
   }
 
   /** Восстановление/выгрузка состояния для localStorage */
   toState() {
     // TODO: вернуть сериализуемый снимок состояния
-    throw new Error("Not implemented: QuizEngine.toState");
+    return {
+      currentIndex: this.currentIndex,
+      answers: this.answers,
+      remainingSec: this.remainingSec,
+      isFinished: this.isFinished,
+    };
   }
 
   /** @param {any} state */
   static fromState(quiz, state) {
     // TODO: создать двигатель на базе сохранённого состояния
-    throw new Error("Not implemented: QuizEngine.fromState");
+    const engine = new QuizEngine(quiz);
+    
+    engine.currentIndex = state.currentIndex ?? 0;
+    engine.answers = state.answers ?? {};
+    engine.remainingSec = state.remainingSec ?? quiz.timeLimitSec;
+    engine.isFinished = state.isFinished ?? false;
+    
+    return engine;
   }
 }
 
@@ -183,7 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const quiz = await loadQuiz();
   els.title.textContent = quiz.title;
 
-  const saved = StorageService.loadState?.(); // заглушка
+  const saved = StorageService.loadState();
   if (saved) {
     engine = QuizEngine.fromState(quiz, saved);
   } else {
@@ -191,9 +228,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   bindEvents();
-  renderAll();
-
-  startTimer();
+  
+  if (engine.isFinished) {
+    const summary = engine.finish();
+    renderResult(summary);
+    renderAll();
+  } else {
+    renderAll();
+    startTimer();
+  }
 });
 
 async function loadQuiz() {
@@ -232,19 +275,19 @@ function stopTimer() {
 // ========== События ==========
 function bindEvents() {
   els.btnPrev.addEventListener("click", () => {
-    safeCall(() => engine.prev());
+    engine.prev();
     persist();
     renderAll();
   });
 
   els.btnNext.addEventListener("click", () => {
-    safeCall(() => engine.next());
+    engine.next();
     persist();
     renderAll();
   });
 
   els.btnFinish.addEventListener("click", () => {
-    const summary = safeCall(() => engine.finish());
+    const summary = engine.finish();
     if (summary) {
       stopTimer();
       renderResult(summary);
@@ -254,11 +297,15 @@ function bindEvents() {
 
   els.btnReview.addEventListener("click", () => {
     reviewMode = true;
+    els.result.classList.add("hidden");
+    els.qSection.classList.remove("hidden");
+    document.querySelector("nav.actions").classList.remove("hidden");
+    engine.goTo(0);
     renderAll();
   });
 
   els.btnRestart.addEventListener("click", () => {
-    StorageService.clear?.();
+    StorageService.clear();
     window.location.reload();
   });
 
@@ -266,19 +313,11 @@ function bindEvents() {
     const target = /** @type {HTMLInputElement} */ (e.target);
     if (target?.name === "option") {
       const idx = Number(target.value);
-      safeCall(() => engine.select(idx));
+      engine.select(idx);
       persist();
       renderNav();
     }
   });
-}
-
-function safeCall(fn) {
-  try {
-    return fn?.();
-  } catch {
-    /* noop в шаблоне */
-  }
 }
 
 // ========== Рендер ==========
