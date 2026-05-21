@@ -25,7 +25,7 @@ class Question {
 class StorageService {
   static saveState(state) {
     // TODO: сериализовать state и сохранить в localStorage
-    localStorage.setItem(STORAGE_KEYS.State, JSON.stringify(state))
+    localStorage.setItem(STORAGE_KEYS.STATE, JSON.stringify(state))
   }
 
   static loadState(state) {
@@ -171,17 +171,7 @@ class QuizEngine {
       timeSpent: timeSpentSec,
     };
   }
-
-  /** Восстановление/выгрузка состояния для localStorage */
-  toState() {
-    // TODO: вернуть сериализуемый снимок состояния
-    return {
-      currentIndex: this.currentIndex,
-      answers: this.answers,
-      remainingSec: this.remainingSec,
-      isFinished: this.isFinished,
-    };
-  }
+ 
 
   /** @param {any} state */
   static fromState(quiz, state) {
@@ -194,6 +184,16 @@ class QuizEngine {
     engine.isFinished = state.isFinished ?? false;
     
     return engine;
+  }
+
+  /** Восстановление/выгрузка состояния для localStorage */
+  getState() {
+    return {
+      currentIndex: this.currentIndex,
+      answers: this.answers,
+      remainingSec: this.remainingSec,
+      isFinished: this.isFinished
+    };
   }
 }
 
@@ -345,9 +345,10 @@ function bindEvents() {
 
   els.form.addEventListener("change", (e) => {
     const target = /** @type {HTMLInputElement} */ (e.target);
-    if (target?.name === "option") {
-      const idx = Number(target.value);
+    if (target.name === "option") {
+      const idx = parseInt(target.value, 10);
       engine.select(idx);
+
       persist();
       renderNav();
     }
@@ -416,7 +417,7 @@ function renderQuestion() {
 }
 
 function renderNav() {
-  const hasSelection = Number.isInteger(engine.getSelectedIndex?.());
+  const hasSelection = selectedIdx !== undefined;
   const selectedIdx = engine.getSelectedIndex();
 
   els.btnPrev.disabled = engine.currentIndex === 0;
@@ -465,8 +466,11 @@ function renderResult(summary) {
 // ========== Persist ==========
 function persist() {
   try {
-    const snapshot = engine.toState();
-    StorageService.saveState(snapshot);
+    // const snapshot = engine.toState();
+    // StorageService.saveState(snapshot);
+    if (engine) {
+    StorageService.saveState(engine.getState());
+  }
   } catch (error) {
     console.error("Ошибка при сохранении прогресса:", error);
   }
