@@ -336,12 +336,8 @@ function renderProgress() {
 
 function renderTimer() {
   const sec = engine.remainingSec ?? 0;
-  const m = Math.floor(sec / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(sec % 60)
-    .toString()
-    .padStart(2, "0");
+  const m = Math.floor(sec / 60).toString().padStart(2, "0");
+  const s = Math.floor(sec % 60).toString().padStart(2, "0");
   els.timer.textContent = `${m}:${s}`;
 }
 
@@ -366,7 +362,15 @@ function renderQuestion() {
     input.name = "option";
     input.value = String(i);
     input.id = id;
-    input.checked = engine.getSelectedIndex?.() === i;
+    
+    const selectedIdx = engine.getSelectedIndex();
+    if (selectedIdx === i) {
+      input.checked = true;
+    }
+
+    if (reviewMode === true) {
+      input.disabled = true; 
+    }
 
     const span = document.createElement("span");
     span.textContent = opt;
@@ -379,17 +383,25 @@ function renderQuestion() {
 
 function renderNav() {
   const hasSelection = Number.isInteger(engine.getSelectedIndex?.());
+  const selectedIdx = engine.getSelectedIndex();
+  const canProceed = reviewMode === true || hasSelection === true;
   els.btnPrev.disabled = engine.currentIndex === 0;
   els.btnNext.disabled = !(
     engine.currentIndex < engine.length - 1 && hasSelection
   );
-  els.btnFinish.disabled = !(
-    engine.currentIndex === engine.length - 1 && hasSelection
-  );
+  if (reviewMode === true) {
+    els.btnFinish.disabled = true;
+  } else {
+    els.btnFinish.disabled = !(engine.currentIndex === engine.length - 1 && canProceed);
+  }
 }
 
 function renderResult(summary) {
+  els.qSection.classList.add("hidden");
+  document.querySelector("nav.actions").classList.add("hidden");
+  
   els.result.classList.remove("hidden");
+
   const pct = Math.round(summary.percent * 100);
   const status = summary.passed ? "Пройден" : "Не пройден";
   els.resultSummary.textContent = `${summary.correct} / ${summary.total} (${pct}%) — ${status}`;
@@ -398,9 +410,9 @@ function renderResult(summary) {
 // ========== Persist ==========
 function persist() {
   try {
-    const snapshot = engine.toState?.();
-    if (snapshot) StorageService.saveState(snapshot);
-  } catch {
-    /* noop в шаблоне */
+    const snapshot = engine.toState();
+    StorageService.saveState(snapshot);
+  } catch (error) {
+    console.error("Ошибка при сохранении прогресса:", error);
   }
 }
