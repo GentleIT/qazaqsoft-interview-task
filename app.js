@@ -384,15 +384,25 @@ function renderQuestion() {
 function renderNav() {
   const hasSelection = Number.isInteger(engine.getSelectedIndex?.());
   const selectedIdx = engine.getSelectedIndex();
-  const canProceed = reviewMode === true || hasSelection === true;
+
   els.btnPrev.disabled = engine.currentIndex === 0;
-  els.btnNext.disabled = !(
-    engine.currentIndex < engine.length - 1 && hasSelection
-  );
+
   if (reviewMode === true) {
+    // === РЕЖИМ ПРОСМОТРА ===
+    // Разрешаем листать "Далее", даже если hasSelection равно false.
+    // Блокируем "Далее" только если дошли до последнего вопроса.
+    els.btnNext.disabled = engine.currentIndex === engine.length - 1;
+    
+    // В режиме просмотра кнопка "Завершить" не нужна, жестко блокируем её
     els.btnFinish.disabled = true;
+    
   } else {
-    els.btnFinish.disabled = !(engine.currentIndex === engine.length - 1 && canProceed);
+    // === РЕЖИМ ПРОХОЖДЕНИЯ ТЕСТА ===
+    // "Далее" работает, если это не последний вопрос И пользователь выбрал ответ
+    els.btnNext.disabled = !(engine.currentIndex < engine.length - 1 && hasSelection);
+    
+    // "Завершить" работает, если это последний вопрос И пользователь выбрал ответ
+    els.btnFinish.disabled = !(engine.currentIndex === engine.length - 1 && hasSelection);
   }
 }
 
