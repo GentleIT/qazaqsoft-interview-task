@@ -234,10 +234,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
   
   if (engine.isFinished) {
+    // els.qSection.classList.add("hidden");
+    els.qSection.style.display = "none";
+    const actionsNav = document.querySelector("nav.actions");
+    if (actionsNav) { // why did I use '!=== null' so much...
+      // actionsNav.classList.add("hidden");
+      actionsNav.style.display = "none";
+    }
+
     const summary = engine.finish();
     renderResult(summary);
-    renderAll();
+    // renderAll();
   } else {
+    // els.result.classList.add("hidden");
+    els.result.style.display = "none";
+
+    // els.qSection.classList.remove("hidden");
+    els.qSection.style.display = "block";
+
+    const actionsNav = document.querySelector("nav.actions");
+    if (actionsNav) {
+      // actionsNav.classList.remove("hidden");
+      actionsNav.style.display = "flex";
+    }
+
     renderAll();
     startTimer();
   }
@@ -301,9 +321,19 @@ function bindEvents() {
 
   els.btnReview.addEventListener("click", () => {
     reviewMode = true;
-    els.result.classList.add("hidden");
-    els.qSection.classList.remove("hidden");
-    document.querySelector("nav.actions").classList.remove("hidden");
+    // els.result.classList.add("hidden");
+    // els.result.style.display = "none";
+    els.btnReview.style.display = "none";
+
+    // els.qSection.classList.remove("hidden");
+    els.qSection.style.display = "block";
+
+    // document.querySelector("nav.actions").classList.remove("hidden");
+    const actionsNav = document.querySelector("nav.actions");
+    if (actionsNav) {
+      actionsNav.style.display = "flex";
+    }
+    
     engine.goTo(0);
     renderAll();
   });
@@ -411,10 +441,18 @@ function renderNav() {
 }
 
 function renderResult(summary) {
-  els.qSection.classList.add("hidden");
-  document.querySelector("nav.actions").classList.add("hidden");
-  
-  els.result.classList.remove("hidden");
+  // els.qSection.classList.add("hidden");
+  els.qSection.style.display = "none";
+
+  // document.querySelector("nav.actions").classList.add("hidden");
+  // els.result.classList.remove("hidden");
+  const actionsNav = document.querySelector("nav.actions");
+  if (actionsNav) {
+    actionsNav.style.display = "none";
+  }
+
+  els.result.style.display = "block";
+  els.btnReview.style.display = "";
 
   const minutes = Math.floor(summary.timeSpent / 60).toString().padStart(2, "0");
   const seconds = (summary.timeSpent % 60).toString().padStart(2, "0");
