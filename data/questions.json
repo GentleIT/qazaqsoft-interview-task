@@ -20,6 +20,18 @@
       "text": "Какой метод используется для HTTP-запроса в браузере (без библиотек)?",
       "options": ["axios()", "request()", "fetch()", "$.ajax()"],
       "correctIndex": 2
+    },
+    {
+      "id": "q4",
+      "text": "Какой тип данных у значения null?",
+      "options": ["object", "null", "undefined", "number"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q5",
+      "text": "Как объявить константу?",
+      "options": ["let x", "var x", "const x", "static x"],
+      "correctIndex": 2
     }
   ]
 }
