@@ -122,7 +122,7 @@ class QuizEngine {
     }
 
     // if time is up, but test is not finished yet
-    if (this.remainingSec === 0 & this.isFinished === false) {
+    if (this.remainingSec === 0 && this.isFinished === false) {
       this.isFinished = true;
 
       const summary = this.finish();
@@ -179,7 +179,15 @@ class QuizEngine {
     const engine = new QuizEngine(quiz);
     
     engine.currentIndex = state.currentIndex ?? 0;
-    engine.answers = state.answers ?? {};
+
+    engine.answers = {};
+    // To return answers in int type format from json string
+    if (state.answers) {
+      for (const [qId, ansVal] of Object.entries(state.answers)) {
+        engine.answers[qId] = ansVal !== undefined && ansVal !== null ? Number(ansVal) : undefined;
+      }
+    }
+
     engine.remainingSec = state.remainingSec ?? quiz.timeLimitSec;
     engine.isFinished = state.isFinished ?? false;
     
@@ -321,14 +329,10 @@ function bindEvents() {
 
   els.btnReview.addEventListener("click", () => {
     reviewMode = true;
-    // els.result.classList.add("hidden");
-    // els.result.style.display = "none";
+  
     els.btnReview.style.display = "none";
-
-    // els.qSection.classList.remove("hidden");
     els.qSection.style.display = "block";
 
-    // document.querySelector("nav.actions").classList.remove("hidden");
     const actionsNav = document.querySelector("nav.actions");
     if (actionsNav) {
       actionsNav.style.display = "flex";
@@ -417,36 +421,32 @@ function renderQuestion() {
 }
 
 function renderNav() {
-  const hasSelection = selectedIdx !== undefined;
   const selectedIdx = engine.getSelectedIndex();
+  const hasSelection = selectedIdx !== undefined && selectedIdx !== null && selectedIdx !== "";
 
   els.btnPrev.disabled = engine.currentIndex === 0;
 
   if (reviewMode === true) {
-    // === РЕЖИМ ПРОСМОТРА ===
-    // Разрешаем листать "Далее", даже если hasSelection равно false.
-    // Блокируем "Далее" только если дошли до последнего вопроса.
     els.btnNext.disabled = engine.currentIndex === engine.length - 1;
-    
-    // В режиме просмотра кнопка "Завершить" не нужна, жестко блокируем её
     els.btnFinish.disabled = true;
     
   } else {
-    // === РЕЖИМ ПРОХОЖДЕНИЯ ТЕСТА ===
-    // "Далее" работает, если это не последний вопрос И пользователь выбрал ответ
     els.btnNext.disabled = !(engine.currentIndex < engine.length - 1 && hasSelection);
-    
-    // "Завершить" работает, если это последний вопрос И пользователь выбрал ответ
     els.btnFinish.disabled = !(engine.currentIndex === engine.length - 1 && hasSelection);
   }
 }
 
 function renderResult(summary) {
-  // els.qSection.classList.add("hidden");
-  els.qSection.style.display = "none";
+  els.qSection.style.display = "block";
 
-  // document.querySelector("nav.actions").classList.add("hidden");
-  // els.result.classList.remove("hidden");
+  if (els.qText) {
+    els.qText.textContent = "Вы завершили тест";
+  }
+
+  if (els.form) {
+    els.form.innerHTML = "";
+  }
+
   const actionsNav = document.querySelector("nav.actions");
   if (actionsNav) {
     actionsNav.style.display = "none";
@@ -466,8 +466,6 @@ function renderResult(summary) {
 // ========== Persist ==========
 function persist() {
   try {
-    // const snapshot = engine.toState();
-    // StorageService.saveState(snapshot);
     if (engine) {
     StorageService.saveState(engine.getState());
   }
